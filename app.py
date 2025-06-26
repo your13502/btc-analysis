@@ -22,23 +22,30 @@ data = {}
 for symbol in assets:
     ticker = yf.Ticker(symbol)
     hist = ticker.history(period="180d")
-    if hist.empty:
-        st.warning(f"{assets[symbol]} 的資料無法抓取，請稍後再試或檢查代碼。")
+    if hist.empty or hist["Close"].dropna().empty:
+        st.warning(f"⚠️ {assets[symbol]} 的資料無法抓取，請稍後再試。")
     else:
         data[symbol] = hist["Close"]
 
-# 如果有資料，則進行後續分析
 if data:
     price_df = pd.DataFrame(data)
 
-    # 🔥 資料清理，解決最右邊殘留
-    price_df = price_df.dropna()
+    # 🔥 資料清理
+    price_df = price_df.dropna(how="any")
 
-    # 畫價格線圖（標準化）
     st.subheader("📈 標準化價格走勢比較")
     fig, ax = plt.subplots(figsize=(12, 5))
+
     for symbol in price_df.columns:
-        ax.plot(price_df.index, price_df[symbol] / price_df[symbol].iloc[0], label=assets[symbol])
+        series = price_df[symbol].dropna()
+        if series.empty:
+            st.warning(f"⚠️ {assets[symbol]} 沒有有效數據，無法繪圖。")
+            continue
+        try:
+            ax.plot(series.index, series / series.iloc[0], label=assets[symbol])
+        except IndexError:
+            st.warning(f"⚠️ {assets[symbol]} 的資料不足，無法繪圖。")
+
     ax.set_title("Normalized Price Trend (Past 180 Days)")
     ax.set_xlabel("Date")
     ax.set_ylabel("Normalized Price")
@@ -47,10 +54,13 @@ if data:
     st.pyplot(fig)
 
     # 計算日報酬與相關性
-    returns_df = price_df.pct_change().dropna()
-    correlation = returns_df.corr()
+    if not price_df.empty:
+        returns_df = price_df.pct_change().dropna()
+        correlation = returns_df.corr()
 
-    st.subheader("🔗 日報酬率相關係數")
-    st.dataframe(correlation.round(3))
+        st.subheader("🔗 日報酬率相關係數")
+        st.dataframe(correlation.round(3))
+    else:
+        st.warning("⚠️ 沒有足夠的資料來計算相關性。")
 else:
-    st.error("無法取得任何資產的資料。")
+    st.error("🚫 無法取得任何資產的資料。請檢查網路或資產代碼。")
