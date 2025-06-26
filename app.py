@@ -4,14 +4,15 @@ import yfinance as yf
 import pandas as pd
 import matplotlib.pyplot as plt
 
-st.set_page_config(page_title="BTC 與高相關美股分析", layout="wide")
+st.set_page_config(page_title="BTC 與高相關美股 & 黃金分析", layout="wide")
 
-st.title("📊 BTC 與高相關美股走勢 + 相關性分析")
+st.title("📊 BTC、黃金與高相關美股走勢 + 相關性分析")
 
 assets = {
     "BTC-USD": "Bitcoin",
     "COIN": "Coinbase",
-    "MSTR": "MicroStrategy"
+    "MSTR": "MicroStrategy",
+    "GC=F": "Gold Futures"
 }
 
 st.markdown("資料來源：Yahoo Finance | 期間：過去 180 天")
