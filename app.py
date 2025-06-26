@@ -30,9 +30,6 @@ for symbol in assets:
 if data:
     price_df = pd.DataFrame(data)
 
-    # 🔥 資料清理
-    price_df = price_df.dropna(how="any")
-
     st.subheader("📈 標準化價格走勢比較")
     fig, ax = plt.subplots(figsize=(12, 5))
 
@@ -42,7 +39,8 @@ if data:
             st.warning(f"⚠️ {assets[symbol]} 沒有有效數據，無法繪圖。")
             continue
         try:
-            ax.plot(series.index, series / series.iloc[0], label=assets[symbol])
+            normalized = series / series.iloc[0]
+            ax.plot(normalized.index, normalized, label=assets[symbol])
         except IndexError:
             st.warning(f"⚠️ {assets[symbol]} 的資料不足，無法繪圖。")
 
@@ -53,11 +51,10 @@ if data:
     ax.grid(True)
     st.pyplot(fig)
 
-    # 計算日報酬與相關性
-    if not price_df.empty:
-        returns_df = price_df.pct_change().dropna()
+    # 計算日報酬與相關性（資料對齊）
+    returns_df = price_df.pct_change().dropna(how="any")
+    if not returns_df.empty:
         correlation = returns_df.corr()
-
         st.subheader("🔗 日報酬率相關係數")
         st.dataframe(correlation.round(3))
     else:
