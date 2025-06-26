@@ -4,10 +4,13 @@ import yfinance as yf
 import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
-from streamlit_autorefresh import st_autorefresh
 
-# 自動每5分鐘刷新
-st_autorefresh(interval=5 * 60 * 1000, limit=None, key="autorefresh")
+# ✅ HTML 自動刷新，每5分鐘
+refresh_interval = 5 * 60  # 秒
+refresh_code = f"""
+    <meta http-equiv="refresh" content="{refresh_interval}">
+"""
+st.markdown(refresh_code, unsafe_allow_html=True)
 
 st.set_page_config(page_title="BTC、黃金ETF 與高相關美股分析", layout="wide")
 
