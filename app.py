@@ -11,17 +11,26 @@ import numpy as np
 import os
 import urllib.request
 
-# ✅ 自動下載字體
-font_url = "https://github.com/googlefonts/noto-cjk/raw/main/Sans/OTC/NotoSansCJK-Regular.ttc"
-font_path = os.path.join(os.path.dirname(__file__), "NotoSansCJK-Regular.ttc")
+# ✅ 根據語言自動下載適合的字體
+def setup_font(language):
+    if "繁體" in language:
+        font_url = "https://github.com/googlefonts/noto-cjk/raw/main/Sans/OTF/TraditionalChinese/NotoSansTC-Regular.otf"
+        font_name = "Noto Sans TC"
+    elif "简体" in language:
+        font_url = "https://github.com/googlefonts/noto-cjk/raw/main/Sans/OTF/SimplifiedChinese/NotoSansSC-Regular.otf"
+        font_name = "Noto Sans SC"
+    elif "日本語" in language:
+        font_url = "https://github.com/googlefonts/noto-cjk/raw/main/Sans/OTF/Japanese/NotoSansJP-Regular.otf"
+        font_name = "Noto Sans JP"
+    else:
+        return "Arial"
 
-if not os.path.exists(font_path):
-    with st.spinner("Downloading font..."):
-        urllib.request.urlretrieve(font_url, font_path)
-
-font_manager.fontManager.addfont(font_path)
-plt.rcParams['font.family'] = 'Noto Sans CJK JP'
-plt.rcParams['axes.unicode_minus'] = False
+    font_path = os.path.join(os.path.dirname(__file__), font_url.split("/")[-1])
+    if not os.path.exists(font_path):
+        with st.spinner("Downloading font..."):
+            urllib.request.urlretrieve(font_url, font_path)
+    font_manager.fontManager.addfont(font_path)
+    return font_name
 
 # 頁面設定
 st.set_page_config(page_title="Asset Analysis Dashboard", layout="wide")
@@ -32,6 +41,11 @@ language = st.sidebar.selectbox(
     options=["English", "中文 (繁體)", "中文 (简体)", "日本語"],
     index=0
 )
+
+# 設定字體
+font_name = setup_font(language)
+plt.rcParams['font.family'] = font_name
+plt.rcParams['axes.unicode_minus'] = False
 
 # 多語字典
 text = {
