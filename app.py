@@ -8,9 +8,11 @@ from matplotlib import font_manager
 from datetime import datetime, timedelta
 import pytz
 import numpy as np
+import os
 
-# ✅ 字體設定（解決中文字/日文框框問題）
-font_manager.fontManager.addfont('NotoSansCJK-Regular.ttc')
+# ✅ 正確的字體路徑設定
+font_path = os.path.join(os.path.dirname(__file__), "NotoSansCJK-Regular.ttc")
+font_manager.fontManager.addfont(font_path)
 plt.rcParams['font.family'] = 'Noto Sans CJK JP'
 plt.rcParams['axes.unicode_minus'] = False
 
