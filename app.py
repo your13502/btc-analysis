@@ -9,9 +9,16 @@ from datetime import datetime, timedelta
 import pytz
 import numpy as np
 import os
+import urllib.request
 
-# ✅ 正確的字體路徑設定
+# ✅ 自動下載字體
+font_url = "https://github.com/googlefonts/noto-cjk/raw/main/Sans/OTC/NotoSansCJK-Regular.ttc"
 font_path = os.path.join(os.path.dirname(__file__), "NotoSansCJK-Regular.ttc")
+
+if not os.path.exists(font_path):
+    with st.spinner("Downloading font..."):
+        urllib.request.urlretrieve(font_url, font_path)
+
 font_manager.fontManager.addfont(font_path)
 plt.rcParams['font.family'] = 'Noto Sans CJK JP'
 plt.rcParams['axes.unicode_minus'] = False
@@ -19,14 +26,14 @@ plt.rcParams['axes.unicode_minus'] = False
 # 頁面設定
 st.set_page_config(page_title="Asset Analysis Dashboard", layout="wide")
 
-# ✅ 語言選擇
+# 語言選擇
 language = st.sidebar.selectbox(
     "Language / 語言 / 言語",
     options=["English", "中文 (繁體)", "中文 (简体)", "日本語"],
     index=0
 )
 
-# ✅ 多語字典
+# 多語字典
 text = {
     "title": {
         "English": "Asset Analysis Dashboard",
