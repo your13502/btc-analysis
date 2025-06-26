@@ -157,6 +157,12 @@ st.pyplot(fig)
 # Heatmap
 st.subheader("Correlation Heatmap")
 corr = returns.corr()
-fig2, ax2 = plt.subplots(figsize=(8, 6))
-sns.heatmap(corr, annot=True, cmap="coolwarm", fmt=".2f", ax=ax2)
+
+# 處理顯示格式：小於0.005的顯示為0，其他四捨五入到2位
+corr_display = corr.applymap(lambda x: 0 if abs(x) < 0.005 else round(x, 2))
+
+# 動態調整Heatmap尺寸
+size = max(6, len(corr) * 1.2)
+fig2, ax2 = plt.subplots(figsize=(size, size))
+sns.heatmap(corr, annot=corr_display, cmap="coolwarm", fmt="", ax=ax2, square=True)
 st.pyplot(fig2)
