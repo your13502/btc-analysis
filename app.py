@@ -3,6 +3,7 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 import matplotlib.pyplot as plt
+from datetime import datetime, timedelta
 
 st.set_page_config(page_title="BTC、黃金ETF 與高相關美股分析", layout="wide")
 
@@ -17,15 +18,22 @@ assets = {
 
 st.markdown("資料來源：Yahoo Finance | 期間：過去 180 天")
 
+# 設定日期範圍
+end_date = datetime.today()
+start_date = end_date - timedelta(days=180)
+
 # 抓資料
 data = {}
 for symbol in assets:
     ticker = yf.Ticker(symbol)
-    hist = ticker.history(period="180d")
-    if hist.empty or hist["Close"].dropna().empty:
-        st.warning(f"⚠️ {assets[symbol]} 的資料無法抓取，請稍後再試。")
-    else:
-        data[symbol] = hist["Close"]
+    try:
+        hist = ticker.history(start=start_date.strftime('%Y-%m-%d'), end=end_date.strftime('%Y-%m-%d'))
+        if hist.empty or hist["Close"].dropna().empty:
+            st.warning(f"⚠️ {assets[symbol]} 的資料無法抓取，請稍後再試。")
+        else:
+            data[symbol] = hist["Close"]
+    except Exception as e:
+        st.error(f"🚫 {assets[symbol]} 抓取資料時發生錯誤：{e}")
 
 if data:
     price_df = pd.DataFrame(data)
