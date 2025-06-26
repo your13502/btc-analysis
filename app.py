@@ -31,10 +31,13 @@ for symbol in assets:
 if data:
     price_df = pd.DataFrame(data)
 
+    # 🔥 資料清理，解決最右邊殘留
+    price_df = price_df.dropna()
+
     # 畫價格線圖（標準化）
     st.subheader("📈 標準化價格走勢比較")
     fig, ax = plt.subplots(figsize=(12, 5))
-    for symbol in data.keys():
+    for symbol in price_df.columns:
         ax.plot(price_df.index, price_df[symbol] / price_df[symbol].iloc[0], label=assets[symbol])
     ax.set_title("Normalized Price Trend (Past 180 Days)")
     ax.set_xlabel("Date")
