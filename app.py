@@ -163,6 +163,21 @@ corr_display = corr.applymap(lambda x: 0 if abs(x) < 0.005 else round(x, 2))
 
 # 動態調整Heatmap尺寸
 size = max(6, len(corr) * 1.2)
+shrink_value = 0.7 if len(corr) <= 5 else 0.6  # 自動縮放Colorbar
+
 fig2, ax2 = plt.subplots(figsize=(size, size))
-sns.heatmap(corr, annot=corr_display, cmap="coolwarm", fmt="", ax=ax2, square=True)
+sns.heatmap(
+    corr,
+    annot=corr_display,
+    cmap="coolwarm",
+    fmt="",
+    ax=ax2,
+    cbar_kws={"shrink": shrink_value},
+    square=True,
+    vmin=corr.min().min(),
+    vmax=corr.max().max()
+)
+
+cbar = ax2.collections[0].colorbar
+cbar.ax.tick_params(labelsize=8)  # 縮小Colorbar的文字
 st.pyplot(fig2)
