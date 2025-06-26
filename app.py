@@ -4,6 +4,7 @@ import yfinance as yf
 import pandas as pd
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
+import pytz
 
 # ✅ HTML 自動刷新，每5分鐘
 refresh_interval = 5 * 60  # 秒
@@ -12,15 +13,15 @@ refresh_code = f"""
 """
 st.markdown(refresh_code, unsafe_allow_html=True)
 
-st.set_page_config(page_title="BTC、黃金ETF 與高相關美股分析", layout="wide")
+st.set_page_config(page_title="BTC、黃金ETF、美股 與 USD 分析", layout="wide")
 
-st.title("📊 BTC、黃金ETF(GLD) 與高相關美股走勢 + 相關性分析")
+st.title("📊 BTC、黃金ETF、美股 與 USD 分析")
 
 assets = {
     "BTC-USD": "Bitcoin",
     "COIN": "Coinbase",
     "MSTR": "MicroStrategy",
-    "GLD": "Gold ETF (GLD)"
+    "GLD": "Gold ETF (GLD)",
 }
 
 st.markdown("資料來源：Yahoo Finance | 期間：過去 180 天")
@@ -29,8 +30,10 @@ st.markdown("資料來源：Yahoo Finance | 期間：過去 180 天")
 end_date = datetime.today()
 start_date = end_date - timedelta(days=180)
 
-# 顯示資料抓取的時間
-fetch_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+# 顯示資料抓取的時間（本地時間）
+fetch_time_utc = datetime.utcnow()
+local_timezone = pytz.timezone("Asia/Taipei")  # 根據你想要的當地時區設定
+fetch_time_local = fetch_time_utc.astimezone(local_timezone).strftime("%Y-%m-%d %H:%M:%S")
 
 # 抓資料
 data = {}
@@ -44,6 +47,13 @@ for symbol in assets:
             data[symbol] = hist["Close"]
     except Exception as e:
         st.error(f"🚫 {assets[symbol]} 抓取資料時發生錯誤：{e}")
+
+# ➕ 加入 USD 基準（固定為1）
+date_index = list(data.values())[0].index if data else pd.date_range(start=start_date, end=end_date)
+data["USD"] = pd.Series(1, index=date_index)
+
+# 更新資產名稱
+assets["USD"] = "US Dollar"
 
 if data:
     price_df = pd.DataFrame(data)
@@ -62,19 +72,31 @@ if data:
         except IndexError:
             st.warning(f"⚠️ {assets[symbol]} 的資料不足，無法繪圖。")
 
-    title_text = f"Normalized Price Trend (Past 180 Days)\nLast Updated: {fetch_time}"
+    title_text = "Normalized Price Trend (Past 180 Days)"
     ax.set_title(title_text, fontsize=14)
     ax.set_xlabel("Date")
     ax.set_ylabel("Normalized Price")
     ax.legend(loc="upper left")
     ax.grid(True)
+
+    # ⏰ 顯示更新時間（縮小字體、對齊圖表右下）
+    ax.text(
+        1.0, -0.15,
+        f"Last Updated: {fetch_time_local} (Local Time)",
+        transform=ax.transAxes,
+        ha='right',
+        va='center',
+        fontsize=5,
+        color='gray'
+    )
+
     st.pyplot(fig)
 
     # 計算日報酬與相關性（資料對齊）
     returns_df = price_df.pct_change().dropna(how="any")
     if not returns_df.empty:
         correlation = returns_df.corr()
-        st.subheader(f"🔗 日報酬率相關係數 （最後更新：{fetch_time}）")
+        st.subheader(f"🔗 日報酬率相關係數 （最後更新：{fetch_time_local}）")
         st.dataframe(correlation.round(3))
     else:
         st.warning("⚠️ 沒有足夠的資料來計算相關性。")
