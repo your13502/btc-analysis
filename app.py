@@ -4,20 +4,15 @@ import yfinance as yf
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from matplotlib import font_manager
 from datetime import datetime, timedelta
 import pytz
 import numpy as np
 
-# ✅ 字體設定修正（防止中文/日文變框框）
+# ✅ 字體設定（解決中文字/日文框框問題）
+font_manager.fontManager.addfont('NotoSansCJK-Regular.ttc')
+plt.rcParams['font.family'] = 'Noto Sans CJK JP'
 plt.rcParams['axes.unicode_minus'] = False
-
-def set_font(language):
-    if language in ["中文 (繁體)", "中文 (简体)"]:
-        plt.rcParams['font.sans-serif'] = ['Microsoft JhengHei', 'SimHei', 'Arial']
-    elif language == "日本語":
-        plt.rcParams['font.sans-serif'] = ['IPAexGothic', 'Arial']
-    else:
-        plt.rcParams['font.sans-serif'] = ['Arial']
 
 # 頁面設定
 st.set_page_config(page_title="Asset Analysis Dashboard", layout="wide")
@@ -82,9 +77,6 @@ text = {
 }
 
 st.title(text["title"][language])
-
-# 套用字體
-set_font(language)
 
 # 資產選單
 asset_options = {
@@ -185,7 +177,9 @@ st.subheader(text["correlation_heatmap"][language])
 corr = returns.corr()
 
 # 數值顯示處理
-corr_display = corr.applymap(lambda x: 0 if abs(x) < 0.005 else round(x, 2))
+corr_display = corr.applymap(
+    lambda x: f"{x:.2f}" if abs(x) >= 0.01 else f"{x:.3f}" if abs(x) >= 0.001 else "0"
+)
 
 # Heatmap
 size = max(6, len(corr) * 1.2)
