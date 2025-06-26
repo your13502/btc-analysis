@@ -13,22 +13,47 @@ refresh_code = f"""
 """
 st.markdown(refresh_code, unsafe_allow_html=True)
 
-st.set_page_config(page_title="BTC、黃金ETF 與高相關美股分析", layout="wide")
+st.set_page_config(page_title="資產價格走勢與相關性分析", layout="wide")
 
-st.title("📊 BTC、黃金ETF(GLD) 與高相關美股走勢 + 相關性分析")
+st.title("📊 資產價格走勢與相關性分析")
 
-assets = {
+# 資產選單
+asset_options = {
     "BTC-USD": "Bitcoin",
+    "ETH-USD": "Ethereum",
+    "TSLA": "Tesla",
+    "SPY": "S&P500 ETF",
+    "GLD": "Gold ETF",
     "COIN": "Coinbase",
-    "MSTR": "MicroStrategy",
-    "GLD": "Gold ETF (GLD)",
+    "MSTR": "MicroStrategy"
 }
 
-st.markdown("資料來源：Yahoo Finance | 期間：過去 180 天")
+selected_assets = st.multiselect(
+    "選擇你想分析的資產：",
+    options=list(asset_options.keys()),
+    default=["BTC-USD", "COIN", "MSTR", "GLD"],
+    format_func=lambda x: asset_options[x]
+)
 
-# 設定日期範圍
+# 深色模式選擇
+theme = st.radio("選擇主題模式：", ["Light", "Dark"], index=0)
+
+if theme == "Dark":
+    plt.style.use('dark_background')
+    background_color = '#0e1117'
+    grid_color = 'gray'
+    text_color = 'white'
+else:
+    plt.style.use('default')
+    background_color = 'white'
+    grid_color = 'lightgray'
+    text_color = 'black'
+
+st.markdown("資料來源：Yahoo Finance | 期間：過去 365 天")
+
+# 設定日期範圍為365天
 end_date = datetime.today()
-start_date = end_date - timedelta(days=180)
+start_date = end_date - timedelta(days=365)
 
 # 顯示資料抓取的時間（本地時間）
 fetch_time_utc = datetime.utcnow()
@@ -37,40 +62,43 @@ fetch_time_local = fetch_time_utc.astimezone(local_timezone).strftime("%Y-%m-%d 
 
 # 抓資料
 data = {}
-for symbol in assets:
+for symbol in selected_assets:
     ticker = yf.Ticker(symbol)
     try:
         hist = ticker.history(start=start_date.strftime('%Y-%m-%d'), end=end_date.strftime('%Y-%m-%d'))
         if hist.empty or hist["Close"].dropna().empty:
-            st.warning(f"⚠️ {assets[symbol]} 的資料無法抓取，請稍後再試。")
+            st.warning(f"⚠️ {asset_options[symbol]} 的資料無法抓取，請稍後再試。")
         else:
             data[symbol] = hist["Close"]
     except Exception as e:
-        st.error(f"🚫 {assets[symbol]} 抓取資料時發生錯誤：{e}")
+        st.error(f"🚫 {asset_options[symbol]} 抓取資料時發生錯誤：{e}")
 
 if data:
     price_df = pd.DataFrame(data)
 
     st.subheader("📈 標準化價格走勢比較")
-    fig, ax = plt.subplots(figsize=(12, 5))
+    fig, ax = plt.subplots(figsize=(12, 5), facecolor=background_color)
+    fig.patch.set_facecolor(background_color)
 
     for symbol in price_df.columns:
         series = price_df[symbol].dropna()
         if series.empty:
-            st.warning(f"⚠️ {assets[symbol]} 沒有有效數據，無法繪圖。")
+            st.warning(f"⚠️ {asset_options[symbol]} 沒有有效數據，無法繪圖。")
             continue
         try:
             normalized = series / series.iloc[0]
-            ax.plot(normalized.index, normalized, label=assets[symbol])
+            ax.plot(normalized.index, normalized, label=asset_options[symbol])
         except IndexError:
-            st.warning(f"⚠️ {assets[symbol]} 的資料不足，無法繪圖。")
+            st.warning(f"⚠️ {asset_options[symbol]} 的資料不足，無法繪圖。")
 
-    title_text = "Normalized Price Trend (Past 180 Days)"
-    ax.set_title(title_text, fontsize=14)
-    ax.set_xlabel("Date")
-    ax.set_ylabel("Normalized Price")
+    title_text = "Normalized Price Trend (Past 365 Days)"
+    ax.set_title(title_text, fontsize=14, color=text_color)
+    ax.set_xlabel("Date", color=text_color)
+    ax.set_ylabel("Normalized Price", color=text_color)
     ax.legend(loc="upper left")
-    ax.grid(True)
+    ax.grid(True, color=grid_color)
+    ax.set_facecolor(background_color)
+    ax.tick_params(colors=text_color)
 
     # ⏰ 顯示更新時間（右上角）
     ax.text(
@@ -80,7 +108,7 @@ if data:
         ha='right',
         va='bottom',
         fontsize=5,
-        color='gray'
+        color=text_color
     )
 
     st.pyplot(fig)
