@@ -9,33 +9,12 @@ from datetime import datetime, timedelta
 import pytz
 import numpy as np
 import os
-import urllib.request
 
-# ✅ 根據語言自動下載 Google Fonts 字體
-def setup_font(language):
-    if "繁體" in language:
-        font_url = "https://fonts.gstatic.com/ea/notosanstc/v5/NotoSansTC-Regular.otf"
-        font_name = "Noto Sans TC"
-    elif "简体" in language:
-        font_url = "https://fonts.gstatic.com/ea/notosanssc/v5/NotoSansSC-Regular.otf"
-        font_name = "Noto Sans SC"
-    elif "日本語" in language:
-        font_url = "https://fonts.gstatic.com/ea/notosansjp/v5/NotoSansJP-Regular.otf"
-        font_name = "Noto Sans JP"
-    else:
-        return "Arial"
-
-    font_path = os.path.join(os.path.dirname(__file__), font_url.split("/")[-1])
-
-    if not os.path.exists(font_path):
-        with st.spinner("Downloading font..."):
-            urllib.request.urlretrieve(font_url, font_path)
-
-    font_manager.fontManager.addfont(font_path)
-    plt.rcParams['font.family'] = font_name
-    plt.rcParams['axes.unicode_minus'] = False
-
-    return font_name
+# ✅ 使用本地內建字體，不再下載
+font_path = os.path.join(os.path.dirname(__file__), "fonts", "NotoSansTC-Regular.otf")
+font_manager.fontManager.addfont(font_path)
+plt.rcParams['font.family'] = 'Noto Sans TC'
+plt.rcParams['axes.unicode_minus'] = False
 
 # 頁面設定
 st.set_page_config(page_title="Asset Analysis Dashboard", layout="wide")
@@ -43,62 +22,43 @@ st.set_page_config(page_title="Asset Analysis Dashboard", layout="wide")
 # 語言選擇
 language = st.sidebar.selectbox(
     "Language / 語言 / 言語",
-    options=["English", "中文 (繁體)", "中文 (简体)", "日本語"],
+    options=["English", "中文 (繁體)"],
     index=0
 )
-
-# 設定字體
-font_name = setup_font(language)
 
 # 多語字典
 text = {
     "title": {
         "English": "Asset Analysis Dashboard",
-        "中文 (繁體)": "資產分析儀表板",
-        "中文 (简体)": "资产分析仪表板",
-        "日本語": "資産分析ダッシュボード"
+        "中文 (繁體)": "資產分析儀表板"
     },
     "normalized_price_trend": {
         "English": "Normalized Price Trend",
-        "中文 (繁體)": "標準化價格走勢",
-        "中文 (简体)": "标准化价格走势",
-        "日本語": "正規化価格トレンド"
+        "中文 (繁體)": "標準化價格走勢"
     },
     "correlation_heatmap": {
         "English": "Correlation Heatmap",
-        "中文 (繁體)": "相關性熱力圖",
-        "中文 (简体)": "相关性热力图",
-        "日本語": "相関ヒートマップ"
+        "中文 (繁體)": "相關性熱力圖"
     },
     "select_assets": {
         "English": "Select Assets",
-        "中文 (繁體)": "選擇資產",
-        "中文 (简体)": "选择资产",
-        "日本語": "資産を選択"
+        "中文 (繁體)": "選擇資產"
     },
     "time_range": {
         "English": "Select Time Range",
-        "中文 (繁體)": "選擇時間範圍",
-        "中文 (简体)": "选择时间范围",
-        "日本語": "期間を選択"
+        "中文 (繁體)": "選擇時間範圍"
     },
     "theme_mode": {
         "English": "Theme Mode",
-        "中文 (繁體)": "主題模式",
-        "中文 (简体)": "主题模式",
-        "日本語": "テーマモード"
+        "中文 (繁體)": "主題模式"
     },
     "last_updated": {
         "English": "Last Updated",
-        "中文 (繁體)": "最後更新",
-        "中文 (简体)": "最后更新",
-        "日本語": "最終更新"
+        "中文 (繁體)": "最後更新"
     },
     "no_data": {
         "English": "⚠️ No data available for selected assets and time range.",
-        "中文 (繁體)": "⚠️ 選擇的資產或時間範圍沒有數據。",
-        "中文 (简体)": "⚠️ 选择的资产或时间范围没有数据。",
-        "日本語": "⚠️ 選択された資産または期間にデータがありません。"
+        "中文 (繁體)": "⚠️ 選擇的資產或時間範圍沒有數據。"
     }
 }
 
