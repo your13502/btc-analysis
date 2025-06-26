@@ -8,17 +8,17 @@ from datetime import datetime, timedelta
 import pytz
 import numpy as np
 
-# ✅ 頁面配置
+# 頁面設定
 st.set_page_config(page_title="Asset Analysis Dashboard", layout="wide")
 
-# ✅ 語言選擇
+# 語言選擇
 language = st.sidebar.selectbox(
     "Language / 語言 / 言語",
     options=["English", "中文 (繁體)", "中文 (简体)", "日本語"],
     index=0
 )
 
-# ✅ 文本對應
+# 文字對應
 text = {
     "title": {
         "English": "Asset Analysis Dashboard",
@@ -97,9 +97,8 @@ time_map = {
 }
 days = time_map[time_range]
 
-# 深色模式
+# 主題
 theme = st.sidebar.radio(text["theme"][language], ["Light", "Dark"], index=0)
-
 if theme == "Dark":
     plt.style.use('dark_background')
     background_color = '#0e1117'
@@ -111,7 +110,7 @@ else:
     grid_color = 'lightgray'
     text_color = 'black'
 
-# 資料抓取
+# 抓資料
 end_date = datetime.today()
 start_date = end_date - timedelta(days=days)
 fetch_time_utc = datetime.utcnow()
@@ -129,16 +128,16 @@ if not data:
     st.warning(text["no_data"][language])
     st.stop()
 
-price_df = pd.DataFrame(data)
+# 對齊資料 + 補空值
+price_df = pd.DataFrame(data).ffill().bfill()
 if price_df.empty:
     st.warning(text["no_data"][language])
     st.stop()
 
 returns = price_df.pct_change().dropna()
 
-# ✅ 單頁顯示（簡化版）
+# 圖表：Normalized Price Trend
 st.subheader("Normalized Price Trend")
-
 fig, ax = plt.subplots(figsize=(12, 5))
 for symbol in price_df.columns:
     norm = price_df[symbol] / price_df[symbol].iloc[0]
@@ -153,12 +152,11 @@ ax.set_facecolor(background_color)
 ax.tick_params(colors=text_color)
 ax.text(1.0, 1.02, f"{text['last_updated'][language]}: {fetch_time_local}",
         transform=ax.transAxes, ha='right', va='bottom', fontsize=6, color=text_color)
-
 st.pyplot(fig)
 
-# 相關性
+# Heatmap
 st.subheader("Correlation Heatmap")
 corr = returns.corr()
-fig2, ax2 = plt.subplots()
-sns.heatmap(corr, annot=True, cmap="coolwarm", ax=ax2)
+fig2, ax2 = plt.subplots(figsize=(8, 6))
+sns.heatmap(corr, annot=True, cmap="coolwarm", fmt=".2f", ax=ax2)
 st.pyplot(fig2)
