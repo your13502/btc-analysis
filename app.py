@@ -13,9 +13,9 @@ refresh_code = f"""
 """
 st.markdown(refresh_code, unsafe_allow_html=True)
 
-st.set_page_config(page_title="BTC、黃金ETF、美股 與 USD 分析", layout="wide")
+st.set_page_config(page_title="BTC、黃金ETF 與高相關美股分析", layout="wide")
 
-st.title("📊 BTC、黃金ETF、美股 與 USD 分析")
+st.title("📊 BTC、黃金ETF(GLD) 與高相關美股走勢 + 相關性分析")
 
 assets = {
     "BTC-USD": "Bitcoin",
@@ -32,7 +32,7 @@ start_date = end_date - timedelta(days=180)
 
 # 顯示資料抓取的時間（本地時間）
 fetch_time_utc = datetime.utcnow()
-local_timezone = pytz.timezone("Asia/Taipei")  # 根據你想要的當地時區設定
+local_timezone = pytz.timezone("Asia/Taipei")  # 根據需要修改時區
 fetch_time_local = fetch_time_utc.astimezone(local_timezone).strftime("%Y-%m-%d %H:%M:%S")
 
 # 抓資料
@@ -47,13 +47,6 @@ for symbol in assets:
             data[symbol] = hist["Close"]
     except Exception as e:
         st.error(f"🚫 {assets[symbol]} 抓取資料時發生錯誤：{e}")
-
-# ➕ 加入 USD 基準（固定為1）
-date_index = list(data.values())[0].index if data else pd.date_range(start=start_date, end=end_date)
-data["USD"] = pd.Series(1, index=date_index)
-
-# 更新資產名稱
-assets["USD"] = "US Dollar"
 
 if data:
     price_df = pd.DataFrame(data)
@@ -79,13 +72,13 @@ if data:
     ax.legend(loc="upper left")
     ax.grid(True)
 
-    # ⏰ 顯示更新時間（縮小字體、對齊圖表右下）
+    # ⏰ 顯示更新時間（右上角）
     ax.text(
-        1.0, -0.15,
+        1.0, 1.02,
         f"Last Updated: {fetch_time_local} (Local Time)",
         transform=ax.transAxes,
         ha='right',
-        va='center',
+        va='bottom',
         fontsize=5,
         color='gray'
     )
