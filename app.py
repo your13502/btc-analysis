@@ -8,10 +8,21 @@ from datetime import datetime, timedelta
 import pytz
 import numpy as np
 
+# ✅ 字體設定修正（防止中文/日文變框框）
+plt.rcParams['axes.unicode_minus'] = False
+
+def set_font(language):
+    if language in ["中文 (繁體)", "中文 (简体)"]:
+        plt.rcParams['font.sans-serif'] = ['Microsoft JhengHei', 'SimHei', 'Arial']
+    elif language == "日本語":
+        plt.rcParams['font.sans-serif'] = ['IPAexGothic', 'Arial']
+    else:
+        plt.rcParams['font.sans-serif'] = ['Arial']
+
 # 頁面設定
 st.set_page_config(page_title="Asset Analysis Dashboard", layout="wide")
 
-# ✅ 語言設定
+# ✅ 語言選擇
 language = st.sidebar.selectbox(
     "Language / 語言 / 言語",
     options=["English", "中文 (繁體)", "中文 (简体)", "日本語"],
@@ -71,6 +82,9 @@ text = {
 }
 
 st.title(text["title"][language])
+
+# 套用字體
+set_font(language)
 
 # 資產選單
 asset_options = {
