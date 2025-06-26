@@ -11,25 +11,30 @@ import numpy as np
 import os
 import urllib.request
 
-# ✅ 根據語言自動下載適合的字體
+# ✅ 根據語言自動下載 Google Fonts 字體
 def setup_font(language):
     if "繁體" in language:
-        font_url = "https://github.com/googlefonts/noto-cjk/raw/main/Sans/OTF/TraditionalChinese/NotoSansTC-Regular.otf"
+        font_url = "https://fonts.gstatic.com/ea/notosanstc/v5/NotoSansTC-Regular.otf"
         font_name = "Noto Sans TC"
     elif "简体" in language:
-        font_url = "https://github.com/googlefonts/noto-cjk/raw/main/Sans/OTF/SimplifiedChinese/NotoSansSC-Regular.otf"
+        font_url = "https://fonts.gstatic.com/ea/notosanssc/v5/NotoSansSC-Regular.otf"
         font_name = "Noto Sans SC"
     elif "日本語" in language:
-        font_url = "https://github.com/googlefonts/noto-cjk/raw/main/Sans/OTF/Japanese/NotoSansJP-Regular.otf"
+        font_url = "https://fonts.gstatic.com/ea/notosansjp/v5/NotoSansJP-Regular.otf"
         font_name = "Noto Sans JP"
     else:
         return "Arial"
 
     font_path = os.path.join(os.path.dirname(__file__), font_url.split("/")[-1])
+
     if not os.path.exists(font_path):
         with st.spinner("Downloading font..."):
             urllib.request.urlretrieve(font_url, font_path)
+
     font_manager.fontManager.addfont(font_path)
+    plt.rcParams['font.family'] = font_name
+    plt.rcParams['axes.unicode_minus'] = False
+
     return font_name
 
 # 頁面設定
@@ -44,8 +49,6 @@ language = st.sidebar.selectbox(
 
 # 設定字體
 font_name = setup_font(language)
-plt.rcParams['font.family'] = font_name
-plt.rcParams['axes.unicode_minus'] = False
 
 # 多語字典
 text = {
