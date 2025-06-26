@@ -11,20 +11,32 @@ import numpy as np
 # 頁面設定
 st.set_page_config(page_title="Asset Analysis Dashboard", layout="wide")
 
-# 語言選擇
+# ✅ 語言設定
 language = st.sidebar.selectbox(
     "Language / 語言 / 言語",
     options=["English", "中文 (繁體)", "中文 (简体)", "日本語"],
     index=0
 )
 
-# 文字對應
+# ✅ 多語字典
 text = {
     "title": {
         "English": "Asset Analysis Dashboard",
         "中文 (繁體)": "資產分析儀表板",
         "中文 (简体)": "资产分析仪表板",
         "日本語": "資産分析ダッシュボード"
+    },
+    "normalized_price_trend": {
+        "English": "Normalized Price Trend",
+        "中文 (繁體)": "標準化價格走勢",
+        "中文 (简体)": "标准化价格走势",
+        "日本語": "正規化価格トレンド"
+    },
+    "correlation_heatmap": {
+        "English": "Correlation Heatmap",
+        "中文 (繁體)": "相關性熱力圖",
+        "中文 (简体)": "相关性热力图",
+        "日本語": "相関ヒートマップ"
     },
     "select_assets": {
         "English": "Select Assets",
@@ -38,7 +50,7 @@ text = {
         "中文 (简体)": "选择时间范围",
         "日本語": "期間を選択"
     },
-    "theme": {
+    "theme_mode": {
         "English": "Theme Mode",
         "中文 (繁體)": "主題模式",
         "中文 (简体)": "主题模式",
@@ -98,7 +110,7 @@ time_map = {
 days = time_map[time_range]
 
 # 主題
-theme = st.sidebar.radio(text["theme"][language], ["Light", "Dark"], index=0)
+theme = st.sidebar.radio(text["theme_mode"][language], ["Light", "Dark"], index=0)
 if theme == "Dark":
     plt.style.use('dark_background')
     background_color = '#0e1117'
@@ -136,14 +148,14 @@ if price_df.empty:
 
 returns = price_df.pct_change().dropna()
 
-# 圖表：Normalized Price Trend
-st.subheader("Normalized Price Trend")
+# 📈 Normalized Price Trend
+st.subheader(text["normalized_price_trend"][language])
 fig, ax = plt.subplots(figsize=(12, 5))
 for symbol in price_df.columns:
     norm = price_df[symbol] / price_df[symbol].iloc[0]
     ax.plot(norm.index, norm, label=asset_options[symbol])
 
-ax.set_title(f"Normalized Price Trend (Past {time_range})", fontsize=14, color=text_color)
+ax.set_title(f"{text['normalized_price_trend'][language]} (Past {time_range})", fontsize=14, color=text_color)
 ax.set_xlabel("Date", color=text_color)
 ax.set_ylabel("Normalized Price", color=text_color)
 ax.legend(loc="upper left")
@@ -154,30 +166,34 @@ ax.text(1.0, 1.02, f"{text['last_updated'][language]}: {fetch_time_local}",
         transform=ax.transAxes, ha='right', va='bottom', fontsize=6, color=text_color)
 st.pyplot(fig)
 
-# Heatmap
-st.subheader("Correlation Heatmap")
+# 🔥 Correlation Heatmap
+st.subheader(text["correlation_heatmap"][language])
 corr = returns.corr()
 
-# 處理顯示格式：小於0.005的顯示為0，其他四捨五入到2位
+# 數值顯示處理
 corr_display = corr.applymap(lambda x: 0 if abs(x) < 0.005 else round(x, 2))
 
-# 動態調整Heatmap尺寸
+# Heatmap
 size = max(6, len(corr) * 1.2)
-shrink_value = 0.7 if len(corr) <= 5 else 0.6  # 自動縮放Colorbar
-
 fig2, ax2 = plt.subplots(figsize=(size, size))
+
 sns.heatmap(
     corr,
     annot=corr_display,
     cmap="coolwarm",
     fmt="",
     ax=ax2,
-    cbar_kws={"shrink": shrink_value},
     square=True,
-    vmin=corr.min().min(),
-    vmax=corr.max().max()
+    cbar=False
 )
 
-cbar = ax2.collections[0].colorbar
-cbar.ax.tick_params(labelsize=8)  # 縮小Colorbar的文字
+# Colorbar 放底部
+cbar = fig2.colorbar(
+    ax2.collections[0],
+    orientation="horizontal",
+    fraction=0.05,
+    pad=0.1,
+    aspect=30
+)
+cbar.ax.tick_params(labelsize=8)
 st.pyplot(fig2)
